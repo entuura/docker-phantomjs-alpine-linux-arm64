@@ -2,6 +2,7 @@ FROM alpine:latest
 
 ENV PHANTOMJS_VERSION 2.1.1
 COPY *.patch /
+
 RUN apk add --no-cache --virtual .build-deps \
 		bison \
 		flex \
@@ -37,8 +38,11 @@ RUN apk add --no-cache --virtual .build-deps \
 			&& patch -p1 -i /$i*.patch || break; \
 		done \
 	&& cd /usr/src/phantomjs \
-	&& patch -p1 -i /build.patch \
-	&& python build.py --confirm \
+	&& patch -p1 -i /build.patch
+
+# build phantomjs
+RUN cd /usr/src/phantomjs \
+  && python build.py --confirm \
 	&& paxctl -cm bin/phantomjs \
 	&& strip --strip-all bin/phantomjs \
 	&& install -m755 bin/phantomjs /usr/bin/phantomjs \
@@ -52,4 +56,20 @@ RUN apk add --no-cache --virtual .build-deps \
 	&& apk add --virtual .phantomjs-rundeps $runDeps \
 	&& apk del .build-deps \
 	&& rm -r /*.patch /usr/src
+
+# package binary build
+RUN cd /root \
+  && apk add patchelf --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted \
+  && mkdir -p phantomjs/lib \
+  && cp /usr/bin/phantomjs phantomjs/ \
+  && cd phantomjs \
+    && for lib in `ldd phantomjs \
+      | awk '{if(substr($3,0,1)=="/") print $1,$3}' \
+      | cut -d' ' -f2`; do \
+        cp $lib lib/`basename $lib`; \
+      done \
+    && patchelf --set-rpath lib phantomjs \
+  && cd /root \
+  && tar cvf phantomjs.tar phantomjs \
+  && bzip2 -9 phantomjs.tar
 
