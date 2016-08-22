@@ -57,9 +57,10 @@ RUN cd /usr/src/phantomjs \
 	&& apk del .build-deps \
 	&& rm -r /*.patch /usr/src
 
+RUN apk add patchelf --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
+
 # package binary build
 RUN cd /root \
-  && apk add patchelf --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted \
   && mkdir -p phantomjs/lib \
   && cp /usr/bin/phantomjs phantomjs/ \
   && cd phantomjs \
@@ -68,7 +69,7 @@ RUN cd /root \
       | cut -d' ' -f2`; do \
         cp $lib lib/`basename $lib`; \
       done \
-    && patchelf --set-rpath lib phantomjs \
+    && patchelf --set-rpath '$ORIGIN/lib' phantomjs \
   && cd /root \
   && tar cvf phantomjs.tar phantomjs \
   && bzip2 -9 phantomjs.tar

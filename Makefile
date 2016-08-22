@@ -1,4 +1,4 @@
-NAME=artifacts/phantomjs-v2.11-alpine.tar.bz2
+NAME=artifacts/phantomjs-alpine-x86_64.tar.bz2
 all: $(NAME)
 
 $(NAME):
@@ -6,5 +6,5 @@ $(NAME):
 
 
 clean:
-	rm phantomjs-v2.11-alpine.tar.bz2
+	rm artifacts/* 2>/dev/null || echo "clean"
 
