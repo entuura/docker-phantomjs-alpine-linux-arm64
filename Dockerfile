@@ -1,4 +1,6 @@
-FROM alpine:latest
+FROM node:16-alpine
+# The node:16 alpine image has support for linux/arm64.  alpine:latest does not
+#FROM alpine:latest
 
 ENV PHANTOMJS_VERSION 2.1.1
 COPY *.patch /
@@ -11,6 +13,7 @@ RUN apk add --no-cache --virtual .build-deps \
 		g++ \
 		gcc \
 		git \
+		openssh \
 		gperf \
 		icu-dev \
 		libc-dev \
@@ -23,14 +26,13 @@ RUN apk add --no-cache --virtual .build-deps \
 		openssl-dev \
 		paxctl \
 		perl \
-		python \
+		python3 \
 		ruby \
 		sqlite-dev \
 	&& mkdir -p /usr/src \
 	&& cd /usr/src \
-	&& git clone git://github.com/ariya/phantomjs.git \
+	&& git clone --branch $PHANTOMJS_VERSION --depth=1 https://github.com/ariya/phantomjs.git \
 	&& cd phantomjs \
-	&& git checkout $PHANTOMJS_VERSION \
 	&& git submodule init \
 	&& git submodule update \
 	&& for i in qtbase qtwebkit; do \
@@ -57,20 +59,22 @@ RUN cd /usr/src/phantomjs \
 	&& apk del .build-deps \
 	&& rm -r /*.patch /usr/src
 
-RUN apk add patchelf --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
+# For arm64?
+#RUN apk add patchelf --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 
+# For arm64?
 # package binary build
-RUN cd /root \
-  && mkdir -p phantomjs/lib \
-  && cp /usr/bin/phantomjs phantomjs/ \
-  && cd phantomjs \
-    && for lib in `ldd phantomjs \
-      | awk '{if(substr($3,0,1)=="/") print $1,$3}' \
-      | cut -d' ' -f2`; do \
-        cp $lib lib/`basename $lib`; \
-      done \
-    && patchelf --set-rpath '$ORIGIN/lib' phantomjs \
-  && cd /root \
-  && tar cvf phantomjs.tar phantomjs \
-  && bzip2 -9 phantomjs.tar
+#RUN cd /root \
+#  && mkdir -p phantomjs/lib \
+#  && cp /usr/bin/phantomjs phantomjs/ \
+#  && cd phantomjs \
+#    && for lib in `ldd phantomjs \
+#      | awk '{if(substr($3,0,1)=="/") print $1,$3}' \
+#      | cut -d' ' -f2`; do \
+#        cp $lib lib/`basename $lib`; \
+#      done \
+#    && patchelf --set-rpath '$ORIGIN/lib' phantomjs \
+#  && cd /root \
+#  && tar cvf phantomjs.tar phantomjs \
+#  && bzip2 -9 phantomjs.tar
 
