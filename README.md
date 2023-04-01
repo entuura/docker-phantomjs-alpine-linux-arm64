@@ -1,4 +1,6 @@
-# phantomjs on Alpine Linux x86_64
+# phantomjs on Alpine Linux - modified for linux/arm64
+
+*** THIS IS NOT YET WORKING! ***
 
 This repository uses docker to build a phantomjs docker images.
 
