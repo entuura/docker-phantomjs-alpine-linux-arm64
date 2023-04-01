@@ -27,6 +27,7 @@ RUN apk add --no-cache --virtual .build-deps \
 		paxctl \
 		perl \
 		python3 \
+		patch \
 		ruby \
 		sqlite-dev \
 	&& mkdir -p /usr/src \
